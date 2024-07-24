@@ -69,14 +69,23 @@ impl Serve {
         self.build_arguments.resolve(crate_config)?;
 
         // Since this is a serve, adjust the outdir to be target/dx-dist/<crate name>
-        let mut dist_dir = crate_config.workspace_dir().join("target").join("dx-dist");
+        let mut dist_dir = crate_config
+            .workspace_dir()
+            .join(
+                std::env::var("CARGO_TARGET_DIR")
+                    .as_ref()
+                    .map(|x| x.as_str())
+                    .unwrap_or("target"),
+            )
+            .join("dx-dist");
 
         if crate_config.target.is_example() {
             dist_dir = dist_dir.join("examples");
         }
 
-        crate_config.dioxus_config.application.out_dir =
-            dist_dir.join(crate_config.executable_name());
+        crate_config.dioxus_config.application.out_dir = dist_dir
+            .join(crate_config.executable_name())
+            .join(self.platform().feature_name());
 
         Ok(())
     }
